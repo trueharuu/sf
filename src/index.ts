@@ -182,6 +182,9 @@ app.get('/ren/:res/latest/mirror', async (req, res) => {
 app.get('/txt/ren', async (req, res) => {
   const rs = String(req.query.res || '6');
   const at = String(req.query.at || '1');
+  const hold = req.query.hold
+    ? piece_from_str(String(req.query.hold))
+    : undefined;
   const k = resp()[rs];
   const q = String(req.query.queue)
     .split('')
@@ -195,6 +198,7 @@ app.get('/txt/ren', async (req, res) => {
     board,
     patterns: k,
     queue: q,
+    hold,
   });
 
   let txt = '';
@@ -206,8 +210,12 @@ app.get('/txt/ren', async (req, res) => {
       ${k.map(x => `<option ${x.id === at ? 'selected' : ''}>${x.id}</option>`).join('')}
     </select>
     with queue
-    <input size=7 id=fx class=mino style='text-transform:uppercase;caret-color: transparent;outline:none;background-color:var(--bg);border:0px solid var(--i);color:white;width:fit-content;border-bottom-width:1px;'>
+    <input size=7 id=fx class=mino style='text-transform:uppercase;caret-color: var(--i);outline:none;background-color:var(--bg);border:0px solid var(--i);color:white;width:fit-content;border-bottom-width:1px;'>
     </input>
+    and
+    <input size=1 id=hx class=mino style='text-transform:uppercase;caret-color: var(--i);outline:none;background-color:var(--bg);border:0px solid var(--i);color:white;width:fit-content;border-bottom-width:1px;'>
+    </input>
+    in hold
   </i>
   <br><br>
   <a class=meta style='padding-left:20px;filter:brightness(125%);' href='/txt/ren?res=3&at=1&queue='>3-Residual Combo Finder</a>
@@ -215,26 +223,43 @@ app.get('/txt/ren', async (req, res) => {
   <a class=meta style='padding-left:20px;filter:brightness(125%);' href='/txt/ren?res=6&at=1&queue='>6-Residual Combo Finder</a>`;
 
   txt += `<h3>Starting board</h3><div><img class=g4 src='/render?grid=${to_grid(board.grid)}&spec=false'><br><span class=meta>${board.id}</span></div>`;
-  txt += '<br><h3>Path</h3>';
 
+  txt += '<br><h3>Path</h3>';
   for (const p of path) {
-    txt += `<div style='display:inline-block'><img class=g4 src='/render?grid=${to_grid(p[2])}&spec=false'><br><span class='mino' style='color:var(--${p[1].toLowerCase()}b)'>${p[1]}</span><span class=meta style='padding-left: 10px'>${p[0].id}</div>`;
+    if (p[2] !== undefined) {
+      const bc = after_line_clear(p[2], k)?.id;
+      txt += `<a href='/txt/ren?res=${rs}&at=${bc}&queue=&hold='><div style='display:inline-block'>
+        <img class=g4 src='/render?grid=${to_grid(p[2])}&spec=false'>
+        <br>
+        <span class='mino' style='color:var(--${p[1].toLowerCase()}b)'>${p[1]}</span>
+        <span class=meta style='padding-left: 10px'>${bc || '?'}
+      </div></a>`;
+    }
   }
 
   txt += `<script>
     let ci = '';
-    const fx = document.getElementById(\'fx\');
-    fx.value = '${String(req.query.queue).toUpperCase() || ''}'
+    const fx = document.getElementById('fx');
+    const hx = document.getElementById('hx');
+    fx.value = '${String(req.query.queue || '').toUpperCase()}'
+    hx.value = '${String(req.query.hold || '').toUpperCase()}'
     fx.oninput = (t) => {
       const target = t.target;
       const c = /^[IJOLZST]*$/gi;
       c.test(target.value) ? (ci = target.value.toUpperCase()) : (target.value = ci.toUpperCase())
-      window.location.href = \`/txt/ren?res=${rs}&at=\${s.value}&queue=\${fx.value.toUpperCase() || ''}\`
+      window.location.href = \`/txt/ren?res=${rs}&at=\${s.value}&queue=\${fx.value.toUpperCase() || ''}&hold=\${hx.value}\`
+    };
+
+    hx.oninput = (t) => {
+      const target = t.target;
+      const c = /^[IJOLZST]$/gi;
+      c.test(target.value) ? (ci = target.value.toUpperCase()) : (target.value = ci.toUpperCase())
+      window.location.href = \`/txt/ren?res=${rs}&at=\${s.value}&queue=\${fx.value.toUpperCase() || ''}&hold=\${hx.value}\`
     };
 
     fx.focus();
     const s = document.getElementById('s');
-    s.oninput = (t) => { window.location.href = \`/txt/ren?res=${rs}&at=\${s.value}&queue=\${fx.value.toUpperCase() || ''}\` };
+    s.oninput = (t) => { window.location.href = \`/txt/ren?res=${rs}&at=\${s.value}&queue=\${fx.value.toUpperCase() || ''}&hold=\${hx.value}\` };
     </script>`;
 
   res.contentType('text/html');

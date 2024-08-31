@@ -9,9 +9,11 @@ export interface State {
   hold?: Piece
 }
 
+export type Output = Array<[Pattern, Piece, Array<Array<Piece>>]>;
+
 export async function pathfind(
   state: State,
-): Promise<Array<[Pattern, Piece, Array<Array<Piece>>]>> {
+): Promise<Output> {
   // Base case: if the queue is empty
   if (state.queue.length === 0) {
     if (state.hold) {
@@ -55,7 +57,7 @@ export async function pathfind(
         : [],
     );
 
-  let max: Array<[Pattern, Piece, Array<Array<Piece>>]> = [];
+  let max: Output = [];
   await parallel(possible_continuations, async ([used, cont]) => {
     const board = after_line_clear(cont[1], state.patterns);
     if (board === undefined) {
@@ -79,8 +81,6 @@ export async function pathfind(
       max = nw;
     }
   });
-
-  // console.log(max);
 
   return max;
 }
