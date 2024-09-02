@@ -1,5 +1,5 @@
 import { Pattern } from './patterns.js';
-import { Piece } from './piece.js';
+import { Grid, Piece } from './piece.js';
 
 export function applyFilters(
   color: number,
@@ -101,7 +101,7 @@ export function hslToRgb(
 }
 
 export function after_line_clear(
-  g: Array<Array<Piece>>,
+  g: Grid,
   patterns: Array<Pattern>,
 ): Pattern | undefined {
   const v = g.filter(x => x.includes(Piece.E));
@@ -112,8 +112,8 @@ export function after_line_clear(
 }
 
 export function areGridsEqual(
-  grid1: Array<Array<Piece>>,
-  grid2: Array<Array<Piece>>,
+  grid1: Grid,
+  grid2: Grid,
 ): boolean {
   // console.log(grid1, grid2);
   if (grid1.length === 0) {
@@ -142,4 +142,18 @@ export async function parallel<T, U>(
   f: (t: T, idx: number) => Promise<U>,
 ): Promise<Array<U>> {
   return await Promise.all(v.map((x, i) => f(x, i)));
+}
+
+export function contains_all_of<T>(haystack: Array<T>, needle: Array<T>) {
+  let copy = [...haystack];
+  for (const value of needle) {
+    const idx = copy.indexOf(value);
+    if (idx === -1) {
+      return false;
+    }
+
+    copy = copy.slice(0, idx).concat(copy.slice(idx + 1));
+  }
+
+  return true;
 }

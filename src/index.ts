@@ -15,11 +15,11 @@ import {
   piece_from_str,
   to_grid,
 } from './piece.js';
-import { DATA, resp } from './patterns.js';
+import { DATA, pcs, resp } from './patterns.js';
 import { find_2nd } from './2nd.js';
 import { Image } from 'imagescript';
 import * as fs from 'fs';
-import { after_line_clear, areGridsEqual } from './common.js';
+import { after_line_clear, areGridsEqual, contains_all_of } from './common.js';
 const app = express();
 
 app.get('/render', async (req, res) => {
@@ -46,7 +46,7 @@ app.get('/render', async (req, res) => {
   res.send(gif);
 });
 
-app.get('/listren/:res', (req, res) => {
+app.get('/list/ren/:res', (req, res) => {
   let txt = '';
   txt += `<h1>All ${req.params.res}-residual patterns</h1>`;
   const p = resp()[req.params.res];
@@ -77,11 +77,11 @@ app.get('/listren/:res', (req, res) => {
   res.send(html);
 });
 
-app.get('/listren/:res/:at', (req, res) => {
+app.get('/list/ren/:res/:pattern', (req, res) => {
   let txt = '';
 
   const p = resp()[req.params.res];
-  const r = p.find(x => x.id === req.params.at);
+  const r = p.find(x => x.id === req.params.pattern);
   if (r === undefined) {
     return res.contentType('text/plain').send('unknown pattern');
   }
@@ -113,6 +113,106 @@ app.get('/listren/:res/:at', (req, res) => {
   res.contentType('text/html');
   const html = `<html><head><link rel=stylesheet href=\'../../static/main.css\'></head><body>${txt}</body></html>`;
   res.send(html);
+});
+
+app.get('/list/pc', (req, res) => {
+  const q = String(req.query.queue).toUpperCase();
+  let txt = '';
+  let ic = 0;
+
+  txt += `<span class=meta>
+            Search for PCs given queue
+            <input 
+              size=7
+              id=fx
+              class=mino
+              style='text-transform:uppercase;caret-color: var(--meta);outline:none;background-color:var(--bg);border:0px solid var(--meta);color:white;width:fit-content;border-bottom-width:1px;'>
+            </input>
+          </span>`;
+
+  const searchpcs = pcs().filter(
+    x => contains_all_of(x[2], q as never as Piece[]) && q.length > 0,
+  );
+  txt += `<br><span class=meta style='padding-left: 10px'>${searchpcs.length} PCs found</span><div>
+    ${searchpcs
+    .map(
+      ([
+        ,
+        ,
+        pieces,
+        grid,
+      ]) => `<div style='display:inline-block; padding-top: 2%; padding-left 2%;'>
+    <img class=g4 src='/render?grid=${to_grid(grid)}&spec=false&lcs=false'><br><span style='padding-left: 12px'>${pieces.map(x => `<span class=mino style='color:var(--${x.toLowerCase()}b);font-size: 14px;'>${x}</span>`).join(' ')}</div>`,
+    )
+    .join('')}
+  </div>`;
+  ic += searchpcs.length;
+
+  for (let i = 1; i <= 4; i++) {
+    txt += `<h2>${i}-Height</h2><br>`;
+    for (const [unique, height, pieces, grid] of pcs()) {
+      if (!unique) {
+        continue;
+      }
+      if (i !== height) {
+        continue;
+      }
+      txt += `<div style='display:inline-block; padding-top: 2%; padding-left 2%;'>
+    <img class=g4 src='/render?grid=${to_grid(grid)}&spec=false&lcs=false'><br><span style='padding-left: 12px'>${pieces.map(x => `<span class=mino style='color:var(--${x.toLowerCase()}b); font-size: 14px'>${x}</span>`).join(' ')}</span></div>`;
+      ic++;
+    }
+  }
+
+  txt += '<h2>Non-Unique PCs</h2>';
+  for (const [unique, , pieces, grid] of pcs()) {
+    if (unique) {
+      continue;
+    }
+    txt += `<div style='display:inline-block; padding-top: 2%; padding-left 2%;'>
+  <img class=g4 src='/render?grid=${to_grid(grid)}&spec=false&lcs=false'><br><span style='padding-left: 12px'>${pieces.map(x => `<span class=mino style='color:var(--${x.toLowerCase()}b); font-size: 14px'>${x}</span>`).join(' ')}</span></div>`;
+    ic++;
+  }
+
+  txt += `<script>
+    let ci = '';
+    const fx = document.getElementById('fx');
+    fx.value = '${String(req.query.queue || '').toUpperCase()}'
+    fx.oninput = (t) => {
+      const target = t.target;
+      const c = /^[IJOLZST]*$/gi;
+      c.test(target.value) ? (ci = target.value.toUpperCase()) : (target.value = ci.toUpperCase());
+    };
+
+    fx.onkeydown = (t) => {
+      if (t.key === 'Enter') {
+        window.location.href = \`/list/pc?queue=\${fx.value}\`;
+      }
+    }
+
+    fx.focus();
+
+    </script>`;
+  res.contentType('text/html');
+  const html = `<html><head><link rel=stylesheet href=\'../../static/main.css\'></head><body><i class=meta>There are <b>${ic}</b> images on this page. It may take some time for your browser to load all of them.</i><br><br>${txt}</body></html>`;
+  res.send(html);
+});
+
+app.get('/', (req, res) => {
+  res.contentType('text/plain').send(
+    'list of endpoints:\n\n'
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+    + app._router.stack
+    // @ts-expect-error aaa
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-member-access
+      .filter(x => x.route && x.route.path)
+    // @ts-expect-error aaa
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-member-access
+      .map(x => x.route.path)
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+      .sort()
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+      .join('\n'),
+  );
 });
 
 app.get('/render/clear', (req, res) => {
@@ -163,8 +263,8 @@ app.get('/ren/:res/checks', async (req, res) => {
   res.send(`${stats}\n\n${stdout || 'all good!'}`);
 });
 
-app.get('/ren/:res/:at', async (req, res) => {
-  const v = resp()[req.params.res].find(x => x.id === req.params.at);
+app.get('/ren/:res/:pattern', async (req, res) => {
+  const v = resp()[req.params.res].find(x => x.id === req.params.pattern);
   // console.log(v);
   res.contentType('image/gif');
   const x = Buffer.from(await render_grid(to_grid(v!.grid), false));
@@ -179,7 +279,7 @@ app.get('/ren/:res/latest/mirror', async (req, res) => {
   );
 });
 
-app.get('/txt/ren', async (req, res) => {
+app.get('/tools/combo-finder', async (req, res) => {
   const rs = String(req.query.res || '6');
   const at = String(req.query.at || '1');
   const hold = req.query.hold
@@ -210,10 +310,10 @@ app.get('/txt/ren', async (req, res) => {
       ${k.map(x => `<option ${x.id === at ? 'selected' : ''}>${x.id}</option>`).join('')}
     </select>
     with queue
-    <input size=7 id=fx class=mino style='text-transform:uppercase;caret-color: var(--i);outline:none;background-color:var(--bg);border:0px solid var(--i);color:white;width:fit-content;border-bottom-width:1px;'>
+    <input size=7 id=fx class=mino style='text-transform:uppercase;caret-color: var(--meta);outline:none;background-color:var(--bg);border:0px solid var(--meta);color:white;width:fit-content;border-bottom-width:1px;'>
     </input>
     and
-    <input size=1 id=hx class=mino style='text-transform:uppercase;caret-color: var(--i);outline:none;background-color:var(--bg);border:0px solid var(--i);color:white;width:fit-content;border-bottom-width:1px;'>
+    <input size=1 id=hx class=mino style='text-transform:uppercase;caret-color: var(--meta);outline:none;background-color:var(--bg);border:0px solid var(--meta);color:white;width:fit-content;border-bottom-width:1px;'>
     </input>
     in hold
   </i>
@@ -267,20 +367,22 @@ app.get('/txt/ren', async (req, res) => {
   res.send(html);
 });
 
-app.get('/ren/:res/:at/mirror', async (req, res) => {
-  const v = resp()[req.params.res].find(x => x.id === req.params.at)!;
+app.get('/ren/:res/:pattern/mirror', async (req, res) => {
+  const v = resp()[req.params.res].find(x => x.id === req.params.pattern)!;
   res.contentType('text/plain');
   res.send(
     `${req.params.res}:${v?.id.endsWith('M') ? v.id.slice(0, -1) : v?.id + 'M'}=${to_grid(mirror_grid(v.grid))}#${v.continuations.map(x => `${mirror_of(x[0]).toLowerCase()},${to_grid(mirror_grid(x[1]))}`).join(';')}`,
   );
 });
 
-app.get('/ren/:res/:at/:queue', async (req, res) => {
+app.get('/ren/:res/:pattern/:queue', async (req, res) => {
   const q = String(req.params.queue)
     .split('')
     .map(x => piece_from_str(x));
   const path = await pathfind({
-    board: resp()[req.params.res].find(x => x.id === req.params.at) as never,
+    board: resp()[req.params.res].find(
+      x => x.id === req.params.pattern,
+    ) as never,
     patterns: resp()[req.params.res],
     queue: q,
   });
@@ -298,9 +400,9 @@ app.get('/ren/:res/:at/:queue', async (req, res) => {
   const x = Buffer.from(await render_grid(v, false));
   res.send(x);
 });
-app.get('/ren/:res/:at/with/:piece', async (req, res) => {
+app.get('/ren/:res/:pattern/with/:piece', async (req, res) => {
   const path = resp()
-    [req.params.res].find(x => x.id === req.params.at)
+    [req.params.res].find(x => x.id === req.params.pattern)
     ?.continuations.filter(
       x => String(x[0]) === req.params.piece.toUpperCase()[0],
     )[Number(req.params.piece[1]) || 0];
@@ -403,7 +505,7 @@ app.get('/tools/grid', async (req, res) => {
         const text = btns.map(x=>x.map(y=>y.cc).join('')).join('|');
         const p = text.match(/[ijolzst]/g)?.[0] || 'e';
         const type = "text/plain";
-        const blob = new Blob([p==='e'?text:p+','+text+';'], { type });
+        const blob = new Blob([text], { type });
         const data = [new ClipboardItem({ [type]: blob })];
         navigator.clipboard.write(data);
       } else if (k.ctrlKey & k.key === 'z') {

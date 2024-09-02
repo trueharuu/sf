@@ -1,6 +1,6 @@
 import { parallel, after_line_clear } from './common.js';
 import { Pattern } from './patterns.js';
-import { Piece } from './piece.js';
+import { Grid, Piece } from './piece.js';
 
 export interface State {
   patterns: Array<Pattern>
@@ -9,7 +9,7 @@ export interface State {
   hold?: Piece
 }
 
-export type Output = Array<[Pattern, Piece, Array<Array<Piece>>]>;
+export type Output = Array<[Pattern, Piece, Grid]>;
 
 export async function pathfind(
   state: State,
@@ -35,12 +35,12 @@ export async function pathfind(
 
   // Generate possible continuations
   const possible_continuations: Array<
-    [UsedPiece, [Piece, Array<Array<Piece>>]]
+    [UsedPiece, [Piece, Grid]]
   > = state.board.continuations
     .filter(x => x[0] === currentPiece)
     .map(
       x =>
-        [UsedPiece.Current, x] as [UsedPiece, [Piece, Array<Array<Piece>>]],
+        [UsedPiece.Current, x] as [UsedPiece, [Piece, Grid]],
     )
     .concat(
       holdPiece

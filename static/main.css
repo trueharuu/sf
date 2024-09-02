@@ -32,7 +32,7 @@
     --cb: 16px;
     --ch: 4px;
     --d: #ffffff44;
-    --i: #868686
+    --meta: #868686
 }
 
 img {
@@ -67,11 +67,11 @@ h1 {
 }
 
 i {
-    color: var(--i)
+    color: var(--meta)
 }
 
 .meta {
-    color: var(--i)
+    color: var(--meta)
 }
 
 .mino {

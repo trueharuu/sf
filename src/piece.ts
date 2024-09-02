@@ -9,6 +9,7 @@ export enum Piece {
   G = 'G',
   E = 'E',
 }
+export type Grid = Array<Array<Piece>>;
 export function piece_from_str(f: string): Piece {
   switch (f.toUpperCase()) {
     case 'I':
@@ -103,17 +104,17 @@ export function piece_color_bright(p: Piece): number {
   }
 }
 
-export function parse_grid(t: string): Array<Array<Piece>> {
+export function parse_grid(t: string): Grid {
   return t.split('|').map(x => x.split('').map(y => piece_from_str(y)));
 }
 
-export function to_grid(v: Array<Array<Piece>>) {
+export function to_grid(v: Grid) {
   return v
     .map(x => x.map(y => piece_to_str(y).toLowerCase()).join(''))
     .join('|');
 }
 
-export function mirror_grid(g: Array<Array<Piece>>) {
+export function mirror_grid(g: Grid) {
   return g.map(x => x.reverse().map(y => mirror_of(y)));
 }
 

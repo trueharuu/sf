@@ -1,5 +1,6 @@
 import { Frame, GIF, Image } from 'imagescript';
 import {
+  Grid,
   Piece,
   piece_color,
   piece_color_bright,
@@ -104,7 +105,7 @@ export async function render_grid(
 
 export function preprocess_grid(
   grid: Array<Array<string>>,
-): Array<Array<Piece>> {
+): Grid {
   const ng: Array<Array<string>> = [];
   for (const i of grid) {
     const nr = [];
