@@ -10,10 +10,15 @@ export interface State {
 }
 
 export type Output = Array<[Pattern, Piece, Grid]>;
-
-export async function pathfind(
-  state: State,
-): Promise<Output> {
+export const pathmemo = new Map<string, Output>();
+export function memoize_state(state: State) {
+  return `${state.board.id}@${state.queue.join('')}#${state.hold}`;
+}
+export async function pathfind(state: State): Promise<Output> {
+  const s = memoize_state(state);
+  if (pathmemo.has(s)) {
+    return pathmemo.get(s)!;
+  }
   // Base case: if the queue is empty
   if (state.queue.length === 0) {
     if (state.hold) {
@@ -34,28 +39,24 @@ export async function pathfind(
   const holdPiece = state.hold;
 
   // Generate possible continuations
-  const possible_continuations: Array<
-    [UsedPiece, [Piece, Grid]]
-  > = state.board.continuations
-    .filter(x => x[0] === currentPiece)
-    .map(
-      x =>
-        [UsedPiece.Current, x] as [UsedPiece, [Piece, Grid]],
-    )
-    .concat(
-      holdPiece
-        ? state.board.continuations
-          .filter(x => x[0] === holdPiece)
-          .map(x => [UsedPiece.Hold, x])
-        : [],
-    )
-    .concat(
-      nextPiece && holdPiece === undefined
-        ? state.board.continuations
-          .filter(x => x[0] === nextPiece)
-          .map(x => [UsedPiece.Next, x])
-        : [],
-    );
+  const possible_continuations: Array<[UsedPiece, [Piece, Grid]]>
+    = state.board.continuations
+      .filter(x => x[0] === currentPiece)
+      .map(x => [UsedPiece.Current, x] as [UsedPiece, [Piece, Grid]])
+      .concat(
+        holdPiece
+          ? state.board.continuations
+            .filter(x => x[0] === holdPiece)
+            .map(x => [UsedPiece.Hold, x])
+          : [],
+      )
+      .concat(
+        nextPiece && holdPiece === undefined
+          ? state.board.continuations
+            .filter(x => x[0] === nextPiece)
+            .map(x => [UsedPiece.Next, x])
+          : [],
+      );
 
   let max: Output = [];
   await parallel(possible_continuations, async ([used, cont]) => {
@@ -82,6 +83,7 @@ export async function pathfind(
     }
   });
 
+  pathmemo.set(s, max);
   return max;
 }
 

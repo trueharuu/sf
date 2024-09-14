@@ -1,0 +1,47 @@
+<html>
+
+<head>
+  <link rel=stylesheet href='../../static/main.css'>
+  <script>
+    window.onload = () => {
+      void (async () => {
+        const fx = document.getElementById('fx');
+        const pc_search_results = document.getElementById('pc_search_results');
+        const pc_search_count = document.getElementById('pc_search_count');
+        const pc_list = document.getElementById('pc_list');
+        fx.onkeydown = async (t) => {
+          if (t.key === 'Enter') {
+            await search(t.target.value);
+          }
+        }
+
+        search(fx.value);
+
+        async function search(queue) {
+          const [count, htm] = await fetch(`/pre-render/pc?queue=${queue}`).then(x=>x.json());
+          pc_search_count.innerText = count;
+          pc_search_results.innerHTML = htm;
+        }
+
+        // load pc list
+        const htm = await fetch('/pre-render/pc-list').then(x=>x.text());
+        pc_list.innerHTML = htm;
+      })();
+    }
+  </script>
+</head>
+
+<body>
+  <h1>List of all 4W PCs</h1>
+  <span class=meta>
+    Search for PCs given queue
+    <input size=7 id=fx class=mino
+      style='text-transform:uppercase;caret-color: var(--meta);outline:none;background-color:var(--bg);border:0px solid var(--meta);color:white;width:fit-content;border-bottom-width:1px;'>
+    </input>
+  </span>
+  <br><span class=meta style='padding-left: 10px'><b id="pc_search_count">0</b> PCs found</span>
+  <div id="pc_search_results"></div>
+  <div id="pc_list"></div>
+</body>
+
+</html>

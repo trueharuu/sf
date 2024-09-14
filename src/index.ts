@@ -116,38 +116,113 @@ app.get('/list/ren/:res/:pattern', (req, res) => {
 });
 
 app.get('/list/pc', (req, res) => {
+  // const q = String(req.query.queue).toUpperCase();
+  // let txt = '';
+  // let ic = 0;
+
+  // txt += `<span class=meta>
+  //           Search for PCs given queue
+  //           <input
+  //             size=7
+  //             id=fx
+  //             class=mino
+  //             style='text-transform:uppercase;caret-color: var(--meta);outline:none;background-color:var(--bg);border:0px solid var(--meta);color:white;width:fit-content;border-bottom-width:1px;'>
+  //           </input>
+  //         </span>`;
+
+  // const searchpcs = pcs().filter(
+  //   x => contains_all_of(x[2], q as never as Piece[]) && q.length > 0,
+  // );
+  // txt += `<br><span class=meta style='padding-left: 10px'>${searchpcs.length} PCs found</span><div>
+  //   ${searchpcs
+  //   .map(
+  //     ([
+  //       ,
+  //       ,
+  //       pieces,
+  //       grid,
+  //     ]) => `<div style='display:inline-block; padding-top: 2%; padding-left 2%;'>
+  //   <img class=g4 src='/render?grid=${to_grid(grid)}&spec=false&lcs=false'><br><span style='padding-left: 12px'>${pieces.map(x => `<span class=mino style='color:var(--${x.toLowerCase()}b);font-size: 14px;'>${x}</span>`).join(' ')}</div>`,
+  //   )
+  //   .join('')}
+  // </div>`;
+  // ic += searchpcs.length;
+
+  // for (let i = 1; i <= 4; i++) {
+  //   txt += `<h2>${i}-Height</h2><br>`;
+  //   for (const [unique, height, pieces, grid] of pcs()) {
+  //     if (!unique) {
+  //       continue;
+  //     }
+  //     if (i !== height) {
+  //       continue;
+  //     }
+  //     txt += `<div style='display:inline-block; padding-top: 2%; padding-left 2%;'>
+  //   <img class=g4 src='/render?grid=${to_grid(grid)}&spec=false&lcs=false'><br><span style='padding-left: 12px'>${pieces.map(x => `<span class=mino style='color:var(--${x.toLowerCase()}b); font-size: 14px'>${x}</span>`).join(' ')}</span></div>`;
+  //     ic++;
+  //   }
+  // }
+
+  // txt += '<h2>Non-Unique PCs</h2>';
+  // for (const [unique, , pieces, grid] of pcs()) {
+  //   if (unique) {
+  //     continue;
+  //   }
+  //   txt += `<div style='display:inline-block; padding-top: 2%; padding-left 2%;'>
+  // <img class=g4 src='/render?grid=${to_grid(grid)}&spec=false&lcs=false'><br><span style='padding-left: 12px'>${pieces.map(x => `<span class=mino style='color:var(--${x.toLowerCase()}b); font-size: 14px'>${x}</span>`).join(' ')}</span></div>`;
+  //   ic++;
+  // }
+
+  // txt += `<script>
+  //   let ci = '';
+  //   const fx = document.getElementById('fx');
+  //   fx.value = '${String(req.query.queue || '').toUpperCase()}'
+  //   fx.oninput = (t) => {
+  //     const target = t.target;
+  //     const c = /^[IJOLZST]*$/gi;
+  //     c.test(target.value) ? (ci = target.value.toUpperCase()) : (target.value = ci.toUpperCase());
+  //   };
+
+  //   fx.onkeydown = (t) => {
+  //     if (t.key === 'Enter') {
+  //       window.location.href = \`/list/pc?queue=\${fx.value}\`;
+  //     }
+  //   }
+
+  //   fx.focus();
+
+  //   </script>`;
+  // res.contentType('text/html');
+  // const html = `<html><head><link rel=stylesheet href=\'../../static/main.css\'></head><body><i class=meta>There are <b>${ic}</b> images on this page. It may take some time for your browser to load all of them.</i><br><br>${txt}</body></html>`;
+  // res.send(html);
+  res.send(fs.readFileSync('./static/pcs.html', 'utf-8'));
+});
+
+app.get('/pre-render/pc', (req, res) => {
   const q = String(req.query.queue).toUpperCase();
-  let txt = '';
-  let ic = 0;
-
-  txt += `<span class=meta>
-            Search for PCs given queue
-            <input 
-              size=7
-              id=fx
-              class=mino
-              style='text-transform:uppercase;caret-color: var(--meta);outline:none;background-color:var(--bg);border:0px solid var(--meta);color:white;width:fit-content;border-bottom-width:1px;'>
-            </input>
-          </span>`;
-
   const searchpcs = pcs().filter(
-    x => contains_all_of(x[2], q as never as Piece[]) && q.length > 0,
+    x =>
+      contains_all_of(x[2], q.split('') as never as Piece[]) && q.length > 0,
   );
-  txt += `<br><span class=meta style='padding-left: 10px'>${searchpcs.length} PCs found</span><div>
-    ${searchpcs
-    .map(
-      ([
-        ,
-        ,
-        pieces,
-        grid,
-      ]) => `<div style='display:inline-block; padding-top: 2%; padding-left 2%;'>
-    <img class=g4 src='/render?grid=${to_grid(grid)}&spec=false&lcs=false'><br><span style='padding-left: 12px'>${pieces.map(x => `<span class=mino style='color:var(--${x.toLowerCase()}b);font-size: 14px;'>${x}</span>`).join(' ')}</div>`,
-    )
-    .join('')}
-  </div>`;
-  ic += searchpcs.length;
 
+  res.send([
+    searchpcs.length,
+    searchpcs
+      .map(
+        ([
+          ,
+          ,
+          pieces,
+          grid,
+        ]) => `<div style='display:inline-block; padding-top: 2%; padding-left 2%;'>
+    <img class=g4 src='/render?grid=${to_grid(grid)}&spec=false&lcs=false'><br><span style='padding-left: 12px'>${pieces.map(x => `<span class=mino style='color:var(--${x.toLowerCase()}b);font-size: 14px;'>${x}</span>`).join(' ')}</div>`,
+      )
+      .join(''),
+  ]);
+});
+
+app.get('/pre-render/pc-list', (req, res) => {
+  let txt = '';
   for (let i = 1; i <= 4; i++) {
     txt += `<h2>${i}-Height</h2><br>`;
     for (const [unique, height, pieces, grid] of pcs()) {
@@ -159,7 +234,7 @@ app.get('/list/pc', (req, res) => {
       }
       txt += `<div style='display:inline-block; padding-top: 2%; padding-left 2%;'>
     <img class=g4 src='/render?grid=${to_grid(grid)}&spec=false&lcs=false'><br><span style='padding-left: 12px'>${pieces.map(x => `<span class=mino style='color:var(--${x.toLowerCase()}b); font-size: 14px'>${x}</span>`).join(' ')}</span></div>`;
-      ic++;
+      // ic++;
     }
   }
 
@@ -170,31 +245,10 @@ app.get('/list/pc', (req, res) => {
     }
     txt += `<div style='display:inline-block; padding-top: 2%; padding-left 2%;'>
   <img class=g4 src='/render?grid=${to_grid(grid)}&spec=false&lcs=false'><br><span style='padding-left: 12px'>${pieces.map(x => `<span class=mino style='color:var(--${x.toLowerCase()}b); font-size: 14px'>${x}</span>`).join(' ')}</span></div>`;
-    ic++;
+    // ic++;
   }
 
-  txt += `<script>
-    let ci = '';
-    const fx = document.getElementById('fx');
-    fx.value = '${String(req.query.queue || '').toUpperCase()}'
-    fx.oninput = (t) => {
-      const target = t.target;
-      const c = /^[IJOLZST]*$/gi;
-      c.test(target.value) ? (ci = target.value.toUpperCase()) : (target.value = ci.toUpperCase());
-    };
-
-    fx.onkeydown = (t) => {
-      if (t.key === 'Enter') {
-        window.location.href = \`/list/pc?queue=\${fx.value}\`;
-      }
-    }
-
-    fx.focus();
-
-    </script>`;
-  res.contentType('text/html');
-  const html = `<html><head><link rel=stylesheet href=\'../../static/main.css\'></head><body><i class=meta>There are <b>${ic}</b> images on this page. It may take some time for your browser to load all of them.</i><br><br>${txt}</body></html>`;
-  res.send(html);
+  res.send(txt);
 });
 
 app.get('/', (req, res) => {
@@ -318,9 +372,9 @@ app.get('/tools/combo-finder', async (req, res) => {
     in hold
   </i>
   <br><br>
-  <a class=meta style='padding-left:20px;filter:brightness(125%);' href='/txt/ren?res=3&at=1&queue='>3-Residual Combo Finder</a>
-  <a class=meta style='padding-left:20px;filter:brightness(125%);' href='/txt/ren?res=4&at=1&queue='>4-Residual Combo Finder</a>
-  <a class=meta style='padding-left:20px;filter:brightness(125%);' href='/txt/ren?res=6&at=1&queue='>6-Residual Combo Finder</a>`;
+  <a class=meta style='padding-left:20px;filter:brightness(125%);' href='/tools/combo-finder?res=3&at=1&queue='>3-Residual Combo Finder</a>
+  <a class=meta style='padding-left:20px;filter:brightness(125%);' href='/tools/combo-finder?res=4&at=1&queue='>4-Residual Combo Finder</a>
+  <a class=meta style='padding-left:20px;filter:brightness(125%);' href='/tools/combo-finder?res=6&at=1&queue='>6-Residual Combo Finder</a>`;
 
   txt += `<h3>Starting board</h3><div><img class=g4 src='/render?grid=${to_grid(board.grid)}&spec=false'><br><span class=meta>${board.id}</span></div>`;
 
@@ -328,7 +382,7 @@ app.get('/tools/combo-finder', async (req, res) => {
   for (const p of path) {
     if (p[2] !== undefined) {
       const bc = after_line_clear(p[2], k)?.id;
-      txt += `<a href='/txt/ren?res=${rs}&at=${bc}&queue=&hold='><div style='display:inline-block'>
+      txt += `<a href='/tools/combo-finder?res=${rs}&at=${bc}&queue=&hold='><div style='display:inline-block'>
         <img class=g4 src='/render?grid=${to_grid(p[2])}&spec=false'>
         <br>
         <span class='mino' style='color:var(--${p[1].toLowerCase()}b)'>${p[1]}</span>
@@ -347,19 +401,19 @@ app.get('/tools/combo-finder', async (req, res) => {
       const target = t.target;
       const c = /^[IJOLZST]*$/gi;
       c.test(target.value) ? (ci = target.value.toUpperCase()) : (target.value = ci.toUpperCase())
-      window.location.href = \`/txt/ren?res=${rs}&at=\${s.value}&queue=\${fx.value.toUpperCase() || ''}&hold=\${hx.value}\`
+      window.location.href = \`/tools/combo-finder?res=${rs}&at=\${s.value}&queue=\${fx.value.toUpperCase() || ''}&hold=\${hx.value}\`
     };
 
     hx.oninput = (t) => {
       const target = t.target;
       const c = /^[IJOLZST]$/gi;
       c.test(target.value) ? (ci = target.value.toUpperCase()) : (target.value = ci.toUpperCase())
-      window.location.href = \`/txt/ren?res=${rs}&at=\${s.value}&queue=\${fx.value.toUpperCase() || ''}&hold=\${hx.value}\`
+      window.location.href = \`/tools/combo-finder?res=${rs}&at=\${s.value}&queue=\${fx.value.toUpperCase() || ''}&hold=\${hx.value}\`
     };
 
     fx.focus();
     const s = document.getElementById('s');
-    s.oninput = (t) => { window.location.href = \`/txt/ren?res=${rs}&at=\${s.value}&queue=\${fx.value.toUpperCase() || ''}&hold=\${hx.value}\` };
+    s.oninput = (t) => { window.location.href = \`/tools/combo-finder?res=${rs}&at=\${s.value}&queue=\${fx.value.toUpperCase() || ''}&hold=\${hx.value}\` };
     </script>`;
 
   res.contentType('text/html');

@@ -100,21 +100,28 @@ export function hslToRgb(
   return [Math.round(r * 255), Math.round(g * 255), Math.round(b * 255)];
 }
 
+export const alcmemo = new Map<string, Pattern>();
 export function after_line_clear(
   g: Grid,
   patterns: Array<Pattern>,
 ): Pattern | undefined {
+  const s = g.join('|');
+  if (alcmemo.has(s)) {
+    return alcmemo.get(s);
+  }
+
   const v = g.filter(x => x.includes(Piece.E));
 
   const grey = v.map(x => x.map(y => (y === Piece.E ? Piece.E : Piece.G)));
 
-  return patterns.find(x => areGridsEqual(x.grid, grey));
+  const t = patterns.find(x => areGridsEqual(x.grid, grey));
+  if (t !== undefined) {
+    alcmemo.set(s, t);
+    return t;
+  }
 }
 
-export function areGridsEqual(
-  grid1: Grid,
-  grid2: Grid,
-): boolean {
+export function areGridsEqual(grid1: Grid, grid2: Grid): boolean {
   // console.log(grid1, grid2);
   if (grid1.length === 0) {
     return grid2.length === 0;
