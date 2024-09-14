@@ -78,3 +78,19 @@ i {
     font-family: 'MinoFont';
     font-size: 24px;
 }
+
+input {
+    text-transform: uppercase;
+    caret-color: var(--meta);
+    outline: none;
+    background-color: var(--bg);
+    border: 0px solid var(--meta);
+    color: white;
+    width: fit-content;
+    border-bottom-width: 1px;
+    font-family: 'Inter'
+}
+
+input[type=number] {
+    appearance: textfield;
+  }

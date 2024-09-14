@@ -19,7 +19,7 @@ import { DATA, pcs, resp } from './patterns.js';
 import { find_2nd } from './2nd.js';
 import { Image } from 'imagescript';
 import * as fs from 'fs';
-import { after_line_clear, areGridsEqual, contains_all_of } from './common.js';
+import { after_line_clear, contains_all_of } from './common.js';
 const app = express();
 
 app.get('/render', async (req, res) => {
@@ -52,12 +52,12 @@ app.get('/list/ren/:res', (req, res) => {
   const p = resp()[req.params.res];
   let v = 0;
   let b = 0;
-  console.log(p.length);
-  console.log(areGridsEqual([], parse_grid('eeee|jeee|jjje')));
+  // console.log(p.length);
+  // console.log(areGridsEqual([], parse_grid('eeee|jeee|jjje')));
   for (const r of p) {
     txt += `<h2><span class=meta>#</span>${r.id}</h2>`;
     v += 1;
-    txt += `<img class=g4 src='/render?grid=${to_grid(r.grid)}&spec=false'><br>`;
+    txt += `<a href='/list/ren/${req.params.res}/${r.id}'><img class=g4 src='/render?grid=${to_grid(r.grid)}&spec=false'></a><br>`;
     for (const c of r.continuations.sort((a, b) => a[0].localeCompare(b[0]))) {
       v += 1;
       const leads_to = after_line_clear(c[1], p)?.id || '?';
@@ -65,7 +65,7 @@ app.get('/list/ren/:res', (req, res) => {
         b += 1;
       }
       txt += `<div style='display:inline-block; padding-top: 2%'>
-        <a href='/listren/${req.params.res}/${leads_to}'><img class=g4 src='/render?grid=${to_grid(c[1])}&spec=false'></a>
+        <a href='/list/ren/${req.params.res}/${leads_to}'><img class=g4 src='/render?grid=${to_grid(c[1])}&spec=false'></a>
         <br><span class='mino' style='color:var(--${c[0].toLowerCase()}b)'>${c[0]}</span><span class='meta' style='padding-left: 10px'>${leads_to}</span>
       </div>`;
     }
@@ -111,91 +111,60 @@ app.get('/list/ren/:res/:pattern', (req, res) => {
     }
   }
   res.contentType('text/html');
-  const html = `<html><head><link rel=stylesheet href=\'../../static/main.css\'></head><body>${txt}</body></html>`;
+  const html = `<html><head><link rel=stylesheet href=\'../../../static/main.css\'></head><body>${txt}</body></html>`;
   res.send(html);
 });
 
-app.get('/list/pc', (req, res) => {
-  // const q = String(req.query.queue).toUpperCase();
-  // let txt = '';
-  // let ic = 0;
-
-  // txt += `<span class=meta>
-  //           Search for PCs given queue
-  //           <input
-  //             size=7
-  //             id=fx
-  //             class=mino
-  //             style='text-transform:uppercase;caret-color: var(--meta);outline:none;background-color:var(--bg);border:0px solid var(--meta);color:white;width:fit-content;border-bottom-width:1px;'>
-  //           </input>
-  //         </span>`;
-
-  // const searchpcs = pcs().filter(
-  //   x => contains_all_of(x[2], q as never as Piece[]) && q.length > 0,
-  // );
-  // txt += `<br><span class=meta style='padding-left: 10px'>${searchpcs.length} PCs found</span><div>
-  //   ${searchpcs
-  //   .map(
-  //     ([
-  //       ,
-  //       ,
-  //       pieces,
-  //       grid,
-  //     ]) => `<div style='display:inline-block; padding-top: 2%; padding-left 2%;'>
-  //   <img class=g4 src='/render?grid=${to_grid(grid)}&spec=false&lcs=false'><br><span style='padding-left: 12px'>${pieces.map(x => `<span class=mino style='color:var(--${x.toLowerCase()}b);font-size: 14px;'>${x}</span>`).join(' ')}</div>`,
-  //   )
-  //   .join('')}
-  // </div>`;
-  // ic += searchpcs.length;
-
-  // for (let i = 1; i <= 4; i++) {
-  //   txt += `<h2>${i}-Height</h2><br>`;
-  //   for (const [unique, height, pieces, grid] of pcs()) {
-  //     if (!unique) {
-  //       continue;
-  //     }
-  //     if (i !== height) {
-  //       continue;
-  //     }
-  //     txt += `<div style='display:inline-block; padding-top: 2%; padding-left 2%;'>
-  //   <img class=g4 src='/render?grid=${to_grid(grid)}&spec=false&lcs=false'><br><span style='padding-left: 12px'>${pieces.map(x => `<span class=mino style='color:var(--${x.toLowerCase()}b); font-size: 14px'>${x}</span>`).join(' ')}</span></div>`;
-  //     ic++;
-  //   }
-  // }
-
-  // txt += '<h2>Non-Unique PCs</h2>';
-  // for (const [unique, , pieces, grid] of pcs()) {
-  //   if (unique) {
-  //     continue;
-  //   }
-  //   txt += `<div style='display:inline-block; padding-top: 2%; padding-left 2%;'>
-  // <img class=g4 src='/render?grid=${to_grid(grid)}&spec=false&lcs=false'><br><span style='padding-left: 12px'>${pieces.map(x => `<span class=mino style='color:var(--${x.toLowerCase()}b); font-size: 14px'>${x}</span>`).join(' ')}</span></div>`;
-  //   ic++;
-  // }
-
-  // txt += `<script>
-  //   let ci = '';
-  //   const fx = document.getElementById('fx');
-  //   fx.value = '${String(req.query.queue || '').toUpperCase()}'
-  //   fx.oninput = (t) => {
-  //     const target = t.target;
-  //     const c = /^[IJOLZST]*$/gi;
-  //     c.test(target.value) ? (ci = target.value.toUpperCase()) : (target.value = ci.toUpperCase());
-  //   };
-
-  //   fx.onkeydown = (t) => {
-  //     if (t.key === 'Enter') {
-  //       window.location.href = \`/list/pc?queue=\${fx.value}\`;
-  //     }
-  //   }
-
-  //   fx.focus();
-
-  //   </script>`;
-  // res.contentType('text/html');
-  // const html = `<html><head><link rel=stylesheet href=\'../../static/main.css\'></head><body><i class=meta>There are <b>${ic}</b> images on this page. It may take some time for your browser to load all of them.</i><br><br>${txt}</body></html>`;
-  // res.send(html);
+app.get('/tools/pc-finder', (req, res) => {
   res.send(fs.readFileSync('./static/pcs.html', 'utf-8'));
+});
+
+app.get('/tools/combo-f', (req, res) => {
+  res.send(fs.readFileSync('./static/combo.html', 'utf-8'));
+});
+
+app.get('/pre-render/combo', async (req, res) => {
+  const q = String(req.query.queue)
+    .split('')
+    .map(x => piece_from_str(x));
+  const h = req.query.hold ? piece_from_str(String(req.query.hold)) : undefined;
+  const rs = Number(req.query.res || '6');
+  const pt = String(req.query.pattern || '1').toUpperCase();
+  const k = resp()[rs];
+
+  // console.log(q, h, rs, pt);
+
+  const not_found = `<span class=meta>Pattern <b>${pt}</b> with <b>${rs}</b> residuals was not found.`;
+
+  if (k === undefined) {
+    res.send(not_found);
+    return;
+  }
+
+  const b = k.find(x => x.id === pt);
+  if (b === undefined) {
+    res.send(not_found);
+    return;
+  }
+
+  const pcnt = q.length + (h ? 1 : 0);
+
+  const path = await pathfind({ board: b, patterns: k, queue: q, hold: h });
+
+  let htm = '';
+  htm += `<span class=meta>Longest path used <b>${path.length}/${pcnt}</b> pieces</span>`;
+
+  htm += '<h3>Starting Pattern</h3>';
+  htm += `<a href='list/ren/${rs}/${pt}'><div style='display:inline-block; padding-top: 2%; padding-left 2%;'>
+  <img class=g4 src='/render?grid=${to_grid(b.grid)}&spec=false&lcs=false'><br><span style='padding-left: 12px'><span class=meta>${b.id}</span></div></a>`;
+  htm += '<h3>Path</h3>';
+  for (const [, c, g] of path) {
+    const bc = after_line_clear(g, k)?.id;
+    htm += `<a href=/list/ren/${rs}/${bc}><div style='display:inline-block; padding-top: 2%; padding-left 2%;'>
+  <img class=g4 src='/render?grid=${to_grid(g)}&spec=false&lcs=false'><br><span class='mino' style='color:var(--${c.toLowerCase()}b)'>${c}</span>
+        <span class=meta style='padding-left: 10px'>${bc || '?'}</span></div></a>`;
+  }
+  res.send(htm);
 });
 
 app.get('/pre-render/pc', (req, res) => {
@@ -386,7 +355,7 @@ app.get('/tools/combo-finder', async (req, res) => {
         <img class=g4 src='/render?grid=${to_grid(p[2])}&spec=false'>
         <br>
         <span class='mino' style='color:var(--${p[1].toLowerCase()}b)'>${p[1]}</span>
-        <span class=meta style='padding-left: 10px'>${bc || '?'}
+        <span class=meta style='padding-left: 10px'>${bc || '?'}</span>
       </div></a>`;
     }
   }
@@ -441,12 +410,12 @@ app.get('/ren/:res/:pattern/:queue', async (req, res) => {
     queue: q,
   });
 
-  console.log(
-    'given queue',
-    q,
-    'path used',
-    path.map(x => x[1]),
-  );
+  // console.log(
+  //   'given queue',
+  //   q,
+  //   'path used',
+  //   path.map(x => x[1]),
+  // );
 
   const v = path.map(x => to_grid(x[2])).join(';');
   res.contentType('image/gif');
