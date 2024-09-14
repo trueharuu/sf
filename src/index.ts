@@ -119,7 +119,7 @@ app.get('/tools/pc-finder', (req, res) => {
   res.send(fs.readFileSync('./static/pcs.html', 'utf-8'));
 });
 
-app.get('/tools/combo-f', (req, res) => {
+app.get('/tools/combo-finder', (req, res) => {
   res.send(fs.readFileSync('./static/combo.html', 'utf-8'));
 });
 
@@ -302,93 +302,93 @@ app.get('/ren/:res/latest/mirror', async (req, res) => {
   );
 });
 
-app.get('/tools/combo-finder', async (req, res) => {
-  const rs = String(req.query.res || '6');
-  const at = String(req.query.at || '1');
-  const hold = req.query.hold
-    ? piece_from_str(String(req.query.hold))
-    : undefined;
-  const k = resp()[rs];
-  const q = String(req.query.queue)
-    .split('')
-    .map(x => piece_from_str(x));
-  const board = k.find(x => x.id === at)!;
+// app.get('/tools/combo-finder', async (req, res) => {
+//   const rs = String(req.query.res || '6');
+//   const at = String(req.query.at || '1');
+//   const hold = req.query.hold
+//     ? piece_from_str(String(req.query.hold))
+//     : undefined;
+//   const k = resp()[rs];
+//   const q = String(req.query.queue)
+//     .split('')
+//     .map(x => piece_from_str(x));
+//   const board = k.find(x => x.id === at)!;
 
-  if (board === undefined) {
-    return res.contentType('text/plain').send('unknown pattern');
-  }
-  const path = await pathfind({
-    board,
-    patterns: k,
-    queue: q,
-    hold,
-  });
+//   if (board === undefined) {
+//     return res.contentType('text/plain').send('unknown pattern');
+//   }
+//   const path = await pathfind({
+//     board,
+//     patterns: k,
+//     queue: q,
+//     hold,
+//   });
 
-  let txt = '';
+//   let txt = '';
 
-  txt += `<h2>${rs}-Residual Combo Finder</h2>`;
-  txt += `<i class=meta>
-  Combo for pattern
-    <select style='background-color:var(--bg);border:none;color:white;font-family:Inter' id=s>
-      ${k.map(x => `<option ${x.id === at ? 'selected' : ''}>${x.id}</option>`).join('')}
-    </select>
-    with queue
-    <input size=7 id=fx class=mino style='text-transform:uppercase;caret-color: var(--meta);outline:none;background-color:var(--bg);border:0px solid var(--meta);color:white;width:fit-content;border-bottom-width:1px;'>
-    </input>
-    and
-    <input size=1 id=hx class=mino style='text-transform:uppercase;caret-color: var(--meta);outline:none;background-color:var(--bg);border:0px solid var(--meta);color:white;width:fit-content;border-bottom-width:1px;'>
-    </input>
-    in hold
-  </i>
-  <br><br>
-  <a class=meta style='padding-left:20px;filter:brightness(125%);' href='/tools/combo-finder?res=3&at=1&queue='>3-Residual Combo Finder</a>
-  <a class=meta style='padding-left:20px;filter:brightness(125%);' href='/tools/combo-finder?res=4&at=1&queue='>4-Residual Combo Finder</a>
-  <a class=meta style='padding-left:20px;filter:brightness(125%);' href='/tools/combo-finder?res=6&at=1&queue='>6-Residual Combo Finder</a>`;
+//   txt += `<h2>${rs}-Residual Combo Finder</h2>`;
+//   txt += `<i class=meta>
+//   Combo for pattern
+//     <select style='background-color:var(--bg);border:none;color:white;font-family:Inter' id=s>
+//       ${k.map(x => `<option ${x.id === at ? 'selected' : ''}>${x.id}</option>`).join('')}
+//     </select>
+//     with queue
+//     <input size=7 id=fx class=mino style='text-transform:uppercase;caret-color: var(--meta);outline:none;background-color:var(--bg);border:0px solid var(--meta);color:white;width:fit-content;border-bottom-width:1px;'>
+//     </input>
+//     and
+//     <input size=1 id=hx class=mino style='text-transform:uppercase;caret-color: var(--meta);outline:none;background-color:var(--bg);border:0px solid var(--meta);color:white;width:fit-content;border-bottom-width:1px;'>
+//     </input>
+//     in hold
+//   </i>
+//   <br><br>
+//   <a class=meta style='padding-left:20px;filter:brightness(125%);' href='/tools/combo-finder?res=3&at=1&queue='>3-Residual Combo Finder</a>
+//   <a class=meta style='padding-left:20px;filter:brightness(125%);' href='/tools/combo-finder?res=4&at=1&queue='>4-Residual Combo Finder</a>
+//   <a class=meta style='padding-left:20px;filter:brightness(125%);' href='/tools/combo-finder?res=6&at=1&queue='>6-Residual Combo Finder</a>`;
 
-  txt += `<h3>Starting board</h3><div><img class=g4 src='/render?grid=${to_grid(board.grid)}&spec=false'><br><span class=meta>${board.id}</span></div>`;
+//   txt += `<h3>Starting board</h3><div><img class=g4 src='/render?grid=${to_grid(board.grid)}&spec=false'><br><span class=meta>${board.id}</span></div>`;
 
-  txt += '<br><h3>Path</h3>';
-  for (const p of path) {
-    if (p[2] !== undefined) {
-      const bc = after_line_clear(p[2], k)?.id;
-      txt += `<a href='/tools/combo-finder?res=${rs}&at=${bc}&queue=&hold='><div style='display:inline-block'>
-        <img class=g4 src='/render?grid=${to_grid(p[2])}&spec=false'>
-        <br>
-        <span class='mino' style='color:var(--${p[1].toLowerCase()}b)'>${p[1]}</span>
-        <span class=meta style='padding-left: 10px'>${bc || '?'}</span>
-      </div></a>`;
-    }
-  }
+//   txt += '<br><h3>Path</h3>';
+//   for (const p of path) {
+//     if (p[2] !== undefined) {
+//       const bc = after_line_clear(p[2], k)?.id;
+//       txt += `<a href='/tools/combo-finder?res=${rs}&at=${bc}&queue=&hold='><div style='display:inline-block'>
+//         <img class=g4 src='/render?grid=${to_grid(p[2])}&spec=false'>
+//         <br>
+//         <span class='mino' style='color:var(--${p[1].toLowerCase()}b)'>${p[1]}</span>
+//         <span class=meta style='padding-left: 10px'>${bc || '?'}</span>
+//       </div></a>`;
+//     }
+//   }
 
-  txt += `<script>
-    let ci = '';
-    const fx = document.getElementById('fx');
-    const hx = document.getElementById('hx');
-    fx.value = '${String(req.query.queue || '').toUpperCase()}'
-    hx.value = '${String(req.query.hold || '').toUpperCase()}'
-    fx.oninput = (t) => {
-      const target = t.target;
-      const c = /^[IJOLZST]*$/gi;
-      c.test(target.value) ? (ci = target.value.toUpperCase()) : (target.value = ci.toUpperCase())
-      window.location.href = \`/tools/combo-finder?res=${rs}&at=\${s.value}&queue=\${fx.value.toUpperCase() || ''}&hold=\${hx.value}\`
-    };
+//   txt += `<script>
+//     let ci = '';
+//     const fx = document.getElementById('fx');
+//     const hx = document.getElementById('hx');
+//     fx.value = '${String(req.query.queue || '').toUpperCase()}'
+//     hx.value = '${String(req.query.hold || '').toUpperCase()}'
+//     fx.oninput = (t) => {
+//       const target = t.target;
+//       const c = /^[IJOLZST]*$/gi;
+//       c.test(target.value) ? (ci = target.value.toUpperCase()) : (target.value = ci.toUpperCase())
+//       window.location.href = \`/tools/combo-finder?res=${rs}&at=\${s.value}&queue=\${fx.value.toUpperCase() || ''}&hold=\${hx.value}\`
+//     };
 
-    hx.oninput = (t) => {
-      const target = t.target;
-      const c = /^[IJOLZST]$/gi;
-      c.test(target.value) ? (ci = target.value.toUpperCase()) : (target.value = ci.toUpperCase())
-      window.location.href = \`/tools/combo-finder?res=${rs}&at=\${s.value}&queue=\${fx.value.toUpperCase() || ''}&hold=\${hx.value}\`
-    };
+//     hx.oninput = (t) => {
+//       const target = t.target;
+//       const c = /^[IJOLZST]$/gi;
+//       c.test(target.value) ? (ci = target.value.toUpperCase()) : (target.value = ci.toUpperCase())
+//       window.location.href = \`/tools/combo-finder?res=${rs}&at=\${s.value}&queue=\${fx.value.toUpperCase() || ''}&hold=\${hx.value}\`
+//     };
 
-    fx.focus();
-    const s = document.getElementById('s');
-    s.oninput = (t) => { window.location.href = \`/tools/combo-finder?res=${rs}&at=\${s.value}&queue=\${fx.value.toUpperCase() || ''}&hold=\${hx.value}\` };
-    </script>`;
+//     fx.focus();
+//     const s = document.getElementById('s');
+//     s.oninput = (t) => { window.location.href = \`/tools/combo-finder?res=${rs}&at=\${s.value}&queue=\${fx.value.toUpperCase() || ''}&hold=\${hx.value}\` };
+//     </script>`;
 
-  res.contentType('text/html');
-  const html = `<html><head><link rel=stylesheet href=\'../../../../static/main.css\'></head><body>${txt}</body></html>`;
-  res.send(html);
-});
+//   res.contentType('text/html');
+//   const html = `<html><head><link rel=stylesheet href=\'../../../../static/main.css\'></head><body>${txt}</body></html>`;
+//   res.send(html);
+// });
 
 app.get('/ren/:res/:pattern/mirror', async (req, res) => {
   const v = resp()[req.params.res].find(x => x.id === req.params.pattern)!;
