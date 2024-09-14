@@ -87,14 +87,14 @@ app.get('/list/ren/:res/:pattern', (req, res) => {
   }
 
   txt += `<h1><span class=meta>#</span>${r.id}</h2>`;
-  txt += `<a class=meta href='/listren/${req.params.res}'><i>${req.params.res}-residual patterns</i></a><br>`;
+  txt += `<a class=meta href='/list/ren/${req.params.res}'><i>${req.params.res}-residual patterns</i></a><br>`;
   txt += `<img class=g4 src='/render?grid=${to_grid(r.grid)}&spec=false'><br>`;
 
   txt += '<h2>Continuations</h2>';
   for (const c of r.continuations.sort((a, b) => a[0].localeCompare(b[0]))) {
     const leads_to = after_line_clear(c[1], p)?.id || '?';
     txt += `<div style='display:inline-block; padding-top: 2%'>
-      <a href='/listren/${req.params.res}/${leads_to}'><img class=g4 src='/render?grid=${to_grid(c[1])}&spec=false'></a>
+      <a href='/list/ren/${req.params.res}/${leads_to}'><img class=g4 src='/render?grid=${to_grid(c[1])}&spec=false'></a>
       <br><span class='mino' style='color:var(--${c[0].toLowerCase()}b)'>${c[0]}</span><span class='meta' style='padding-left: 10px'>${leads_to}</span>
     </div>`;
   }
@@ -104,7 +104,7 @@ app.get('/list/ren/:res/:pattern', (req, res) => {
       const alc = after_line_clear(c[1], p);
       if (alc && alc.id === r.id) {
         txt += `<div style='display:inline-block; padding-top: 2%'>
-                  <a href='/listren/${req.params.res}/${b.id}'><img class=g4 src='/render?grid=${to_grid(c[1])}&spec=false'></a>
+                  <a href='/list/ren/${req.params.res}/${b.id}'><img class=g4 src='/render?grid=${to_grid(c[1])}&spec=false'></a>
                   <br><span class='mino' style='color:var(--${c[0].toLowerCase()}b)'>${c[0]}</span><span class='meta' style='padding-left: 10px'>${b.id}</span>
                 </div>`;
       }
